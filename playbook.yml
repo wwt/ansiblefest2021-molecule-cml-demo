@@ -1,0 +1,14 @@
+---
+- name: DEPLOY COMMON SETTINGS
+  hosts: "{{ host_groups }}"
+  gather_facts: false
+
+  roles:
+    - ansible_ios_common_settings
+
+  tasks:
+    # This is to trigger a change in the file change
+    - name: new route
+      cisco.ios.ios_config:
+        lines:
+          - ip route 8.8.8.8 255.255.255.255 10.255.70.193

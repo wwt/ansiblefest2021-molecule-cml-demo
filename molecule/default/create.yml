@@ -1,0 +1,89 @@
+---
+- name: IMPORT TEST LAB TOPOLOGY
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  no_log: "{{ molecule_no_log }}"
+
+  vars_files:
+    - ../vars/test_environment.yml
+
+  tasks:
+    - name: INCLUDE AUTHENTICATE
+      include_tasks: ../../tasks/cml_authenticate.yml
+
+    - name: IMPORT LAB
+      uri:
+        url: '{{ base_url }}/import '
+        method: POST
+        validate_certs: "{{ cml_ssl_verify }}"
+        body_format: json
+        body: "{{ lookup('file', topo_file ) }}"
+        headers:
+          Content-Type: application/json
+          Accept: application/json
+          authorization: Bearer {{ token }}
+      register: import_lab_response
+
+    - name: SAVE RESULTS
+      blockinfile:
+        create: true
+        path: "{{ lab_path }}"
+        block: "{{ import_lab_response.json | to_nice_yaml(indent=2) }}"
+
+- name: Create
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  no_log: "{{ molecule_no_log }}"
+
+  vars_files:
+    - ../vars/test_environment.yml
+
+  vars:
+    provider:
+      host: "{{ lookup('env', 'INFOBLOX_HOST') }}"
+      username: "{{ lookup('env', 'INFOBLOX_USERNAME') }}"
+      password: "{{ lookup('env', 'INFOBLOX_PASSWORD') }}"
+      validate_certs: "{{ lookup('env', 'INFOBLOX_SSL_VERIFY') }}"
+
+  tasks:
+
+    - name: INCLUDE AUTHENTICATE
+      include_tasks: ../../tasks/cml_authenticate.yml
+
+    - name: READ LAB ID FROM FILE # we need the id in lab.id
+      set_fact:
+        lab: "{{ lookup('file', '{{ lab_path }}') | from_yaml }}"
+
+    - name: INCLUDE CREATE_INSTANCE
+      include_tasks: create_instance.yml
+      loop: "{{ molecule_yml.platforms }}"
+
+    - name: Dump instance config
+      copy:
+        content: |
+          # Molecule managed
+
+          {{ instance_created.instances | to_json | from_json | to_yaml }}
+        dest: "{{ molecule_instance_config }}"
+
+    - name: POWER ON LAB
+      uri:
+        url: '{{ base_url }}/labs/{{ lab.id }}/start'
+        method: PUT
+        validate_certs: "{{ cml_ssl_verify }}"
+        headers:
+          Content-Type: text/plain
+          Accept: application/json
+          authorization: Bearer {{ token }}
+
+    - name: WAIT FOR DEVICES TO BE REACHABLE
+      wait_for:
+        host: "{{ item.address }}"
+        timeout: 300
+        state: started
+        sleep: 5
+        port: 22
+        delay: 10
+      loop: "{{ instance_created.instances }}"

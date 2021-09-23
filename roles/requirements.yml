@@ -1,0 +1,6 @@
+---
+- name: ansible_ios_common_settings
+  # Update <<role url>> to match your preferred git path
+  src: http://<<role url>>/ansible_ios_common_settings.git
+  scm: git
+  version: master

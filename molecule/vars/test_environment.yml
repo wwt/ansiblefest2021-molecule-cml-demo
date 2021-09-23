@@ -1,0 +1,7 @@
+lab_title: automated_testing_lab
+network: '10.255.70.192/26'
+mgmt_mask: '255.255.255.192'
+default_gateway: '10.255.70.193'
+topo_file: '../vars/topo.yml'
+domain_name: 'dev.wwtatc.local'
+lab_path: "{{ lookup('env', 'MOLECULE_SCENARIO_DIRECTORY') }}/{{ lab_title }}.yml"

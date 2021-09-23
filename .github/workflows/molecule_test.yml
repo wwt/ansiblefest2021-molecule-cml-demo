@@ -1,0 +1,73 @@
+---
+name: Molecule Test Lab Testing
+
+on:
+  push:
+    branches:
+      - develop
+    paths:
+      - '**.yml'          # All YAML files  in the root (playbooks)
+      - 'molecule/**'     # All Contents of molecule (test updates)
+
+jobs:
+  # removes all directories from prior runs
+  cleaner:
+    runs-on: [self-hosted, cml-runner]
+    steps:
+      - name: Runner workspace path
+        run: |
+          echo "Cleaning up previous run"
+          sudo rm -rf "${{ github.workspace }}"
+
+  build:
+    runs-on: [self-hosted, cml-runner]
+    needs: cleaner
+    steps:
+      - name: download the repo
+        uses: actions/checkout@v2
+
+      - name: build docker image
+        # Update <<docker-repository>> with URL to private docker repository
+        run: |
+          docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+          docker image build -t $GITHUB_REPOSITORY .
+          docker tag $GITHUB_REPOSITORY <<docker-repository>>/$GITHUB_REPOSITORY:latest
+          docker push <<docker-repository>>/$GITHUB_REPOSITORY:latest
+
+  deploy-test:
+    runs-on: [self-hosted, linux]
+    needs: build
+    env:
+      ANSIBLE_CALLBACK_WHITELIST: profile_tasks
+    container:
+      # Update <<docker-repository>> with URL to private docker repository
+      image: <<docker-repository>>/$GITHUB_REPOSITORY:latest
+      env:
+        CML_HOSTNAME: ${{ secrets.CML_HOSTNAME }}
+        CML_USERNAME: ${{ secrets.CML_USERNAME }}
+        CML_PASSWORD: ${{ secrets.CML_PASSWORD }}
+        CML_SSL_VERIFY: ${{ secrets.CML_SSL_VERIFY }}
+        INFOBLOX_HOST: ${{ secrets.INFOBLOX_HOST }}
+        INFOBLOX_USERNAME: ${{ secrets.INFOBLOX_USERNAME }}
+        INFOBLOX_PASSWORD: ${{ secrets.INFOBLOX_PASSWORD }}
+        INFOBLOX_SSL_VERIFY: ${{ secrets.INFOBLOX_SSL_VERIFY }}
+        SSH_USER: ${{ secrets.SSH_USER }}
+        SSH_PASSWORD: ${{ secrets.SSH_PASSWORD }}
+        ANSIBLE_HOST_KEY_CHECKING: False
+        ANSIBLE_SSH_PIPELINING: True
+
+    steps:
+
+      - name: Checkout the Repo
+        uses: actions/checkout@v2
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          ansible-galaxy role install -r roles/requirements.yml
+          ansible-galaxy collection install cisco.ios
+
+      - name: Test with molecule
+        run: |
+          molecule test --scenario-name test_lab

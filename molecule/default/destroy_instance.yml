@@ -1,0 +1,9 @@
+- name: REMOVE HOST FROM INFOBLOX
+  nios_host_record:
+    name: "{{ item.name }}.{{ domain_name }}"
+    state: absent
+    view: Internal
+    provider: "{{ provider }}"
+
+# - name: WIPE DEVICE
+# - name: POWER DOWN DEVICE

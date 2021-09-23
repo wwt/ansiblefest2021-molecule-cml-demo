@@ -1,0 +1,22 @@
+---
+- name: LOAD ENV
+  include_tasks: load_envs.yml
+
+- name: AUTHENTICATE
+  uri:
+    url: '{{ base_url }}/authenticate'
+    use_proxy: no
+    validate_certs: false
+    body_format: json
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+    body:
+      username: "{{ cml_username }}"
+      password: "{{ cml_password }}"
+    method: POST
+  register: auth_response
+
+- name: SAVE TOKEN
+  set_fact:
+    token: "{{ auth_response.json }}"
