@@ -21,9 +21,9 @@ The solution presented during Ansiblefest contains the following components.  Be
 
 ## Solution Requirements
 
-* This workflow requires a GitHub actions-runner that has access to your lab environment.
-* This workflow also requires API access to your Infoblox appliances.
-* Permissions on the CML instance you are targeting to build a new topology
+* GitHub actions-runner that has access to your lab environment.
+* API access to your Infoblox appliances.
+* Permissions on the CML instance you are targeting to build a new topology.
 
 ## Component Information
 
@@ -35,8 +35,8 @@ The workflow in the presentation goes through the following steps:
 
 1. Reserving and allocating IP addresses from Infoblox IPAM
 2. Building a lab topology in Cisco Modeling Labs
-3. Applying Configurations to devices
-4. Verifying those configs match our expectations
+3. Applying device configurations
+4. Verifying those configurations match our expectations
 5. Tearing down the lab to return resources
 6. Returning IP addressing to Infoblox IPAM
 
