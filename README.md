@@ -84,5 +84,9 @@ export ANSIBLE_SSH_PIPELINING=True
 
 ## Contributors
 
-* Nick Thompson <https://github.com/nsthompson/>
-* Jeff Andiorio <https://github.com/jandiorio/>
+* Nick Thompson
+  * GitHub - <https://github.com/nsthompson/>
+  * WWT Profile - <https://www.wwt.com/profile/nick-thompson/>
+* Jeff Andiorio
+  * GitHub - <https://github.com/jandiorio/>
+  * WWT Profile - <https://www.wwt.com/profile/jeff-andiorio/>
