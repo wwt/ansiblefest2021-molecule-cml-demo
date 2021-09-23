@@ -60,7 +60,7 @@ The GitHub Action in this repository utilizes a self-hosted actions-runner, whic
 
 GitHub repositories allow you to store sensitive data like API keys and passwords by leveraging the Encrypted Secrets feature. In addition, you can reference the values stored in Encrypted Secrets in your GitHub Actions through the use of environment variables.
 
-> For more informaiton on encrypted secrets, you can view the [Github Actions Encrypted Secrets](https://docs.github.com/en/actions/security-guides/encrypted-secrets) documentation.
+> For more information on encrypted secrets, you can view the [Github Actions Encrypted Secrets](https://docs.github.com/en/actions/security-guides/encrypted-secrets) documentation.
 
 This lab requires the following Environment Variables.  Some of these variables, such as device usernames and passwords, should be stored as Encrypted Secrets in GitHub to prevent unauthorized access to the credentials.
 
