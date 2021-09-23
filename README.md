@@ -78,6 +78,10 @@ export ANSIBLE_HOST_KEY_CHECKING=False
 export ANSIBLE_SSH_PIPELINING=True
 ```
 
+## Thank You
+
+![thank-you](_images/preso-thank-you.png)
+
 ## Contributors
 
 * Nick Thompson <https://github.com/nsthompson/>
