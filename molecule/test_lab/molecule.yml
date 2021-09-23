@@ -1,0 +1,78 @@
+---
+dependency:
+  name: galaxy
+  options:
+    role-file: ${MOLECULE_PROJECT_DIRECTORY}/roles/requirements.yml
+    requirements-file: ${MOLECULE_PROJECT_DIRECTORY}/collections/requirements.yml
+
+driver:
+  name: delegated
+  options:
+    managed: true
+
+platforms:
+  - name: branch_router1
+    mgmt_intf: 'GigabitEthernet4'
+    groups:
+      - cml_test_lab
+  - name: sr01
+    mgmt_intf: 'GigabitEthernet3/3'
+    groups:
+      - cml_test_lab
+  - name: sr02
+    mgmt_intf: 'GigabitEthernet3/3'
+    groups:
+      - cml_test_lab
+  - name: access01
+    mgmt_intf: 'GigabitEthernet3/3'
+    groups:
+      - cml_test_lab
+
+lint: |
+  set -e
+  yamllint .
+
+provisioner:
+  name: ansible
+  config:
+    default:
+      action_warnings: false
+      host_key_checking: false
+      roles_path: ../../roles
+  inventory:
+    links:
+      # hosts: ../../inventory/hosts.yml
+      group_vars: ../../inventory/group_vars/
+      host_vars: ../../inventory/host_vars/
+
+verifier:
+  name: ansible
+
+scenario:
+  create_sequence:
+    - dependency
+    - create
+  check_sequence:
+    - dependency
+    - destroy
+    - create
+    - converge
+    - check
+    - destroy
+  converge_sequence:
+    - create
+    - converge
+  destroy_sequence:
+    - dependency
+    - cleanup
+    - destroy
+  test_sequence:
+    - dependency
+    - lint
+    - destroy
+    - syntax
+    - create
+    - converge
+    - idempotence
+    - verify
+    - destroy

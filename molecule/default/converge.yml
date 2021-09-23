@@ -1,0 +1,5 @@
+---
+- name: IMPORT PLAYBOOK
+  import_playbook: ../../playbook.yml
+  vars:
+    host_groups: cml_test_lab

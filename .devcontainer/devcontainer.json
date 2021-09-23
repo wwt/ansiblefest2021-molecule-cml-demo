@@ -1,0 +1,10 @@
+{
+	"dockerFile": "../Dockerfile",
+	"extensions": [
+		"bierner.markdown-preview-github-styles",
+		"samuelcolvin.jinjahtml",
+		"ms-azuretools.vscode-docker",
+		"cschleiden.vscode-github-actions"
+	],
+	"runArgs": ["--dns=10.255.0.1"]
+}

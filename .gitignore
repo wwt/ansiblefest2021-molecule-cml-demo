@@ -1,0 +1,5 @@
+roles/*
+!roles/requirements.yml
+.DS_Store
+.env*
+actions-runner/*

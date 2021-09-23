@@ -1,0 +1,68 @@
+- name: SET INITIAL FACTS
+  set_fact:
+    retrieved_ip: "{{ lookup('nios_next_ip', network , provider=provider) }}"
+    hostname: "{{ item.name }}"
+    mgmt_intf: "{{ item.mgmt_intf }}"
+    mgmt_mask: "{{ mgmt_mask }}"
+    default_gateway: "{{ default_gateway }}"
+    username: "{{ ssh_user }}" #"{{ molecule_yml.driver.ssh_user }}"
+    password: "{{ ssh_password }}"  # "{{ molecule_yml.driver.ssh_password }}"
+    domain_name: "{{ domain_name }}"
+
+- name: SET FACT FOR IP
+  set_fact:
+    mgmt_ip: "{{ retrieved_ip[0] }}"
+
+- name: CONFIGURE INFOBLOX HOST
+  nios_host_record:
+    name: "{{ item.name }}.{{ domain_name }}"
+    ipv4addrs:
+      - ipv4addr: "{{ mgmt_ip }}"
+    state: present
+    view: Internal
+    provider: "{{ provider }}"
+
+- name: BUILD CONFIG FROM Template
+  set_fact:
+    config: "{{ lookup('template', '../templates/base_mgmt.j2') }}"
+
+- name: INCLUDE TOPO YAML DATA
+  include_vars: ../vars/topo.yml
+
+- name: SET CURRENT NODE ID
+  set_fact:
+    cur_node_id: "{{ (nodes | selectattr('label','equalto', item.name) | list)[0].id }}"
+
+- name: SET CONFIG OF NODE
+  uri:
+    url: '{{ base_url }}/labs/{{ lab.id }}/nodes/{{ cur_node_id }}/config'
+    method: PUT
+    validate_certs: "{{ cml_ssl_verify }}"
+    body_format: json
+    body: "{{ config }}"
+    headers:
+      Content-Type: text/plain
+      Accept: application/json
+      authorization: Bearer {{ token }}
+
+- name: CREATE INSTANCE
+  set_fact:
+    instance:
+      instance: "{{ item.name }}"
+      address: "{{ mgmt_ip }}"
+      user: "{{ ssh_user }}" # "{{ molecule_yml.driver.ssh_user }}"
+      password: "{{ ssh_password }}" # "{{ molecule_yml.driver.ssh_password }}"
+      port: 22
+
+- name: SET INSTANCE CREATED
+  set_fact:
+    instance_created:
+      instances: []
+  when: instance_created is not defined
+
+- name: UPDATE INSTANCES IN INSTANCE CREATED
+  set_fact:
+    instance_created:
+      instances: "{{ instance_created.instances + [ instance ] }}"
+
+# - name: POWER ON NODE

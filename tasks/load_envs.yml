@@ -1,0 +1,37 @@
+- name: SSH_USER
+  set_fact:
+    ssh_user: "{{ lookup('env', 'SSH_USER') }}"
+
+- name: SSH_PASSWORD
+  set_fact:
+    ssh_password: "{{ lookup('env', 'SSH_PASSWORD') }}"
+
+- name: CML_HOSTNAME
+  set_fact:
+    cml_hostname: "{{ lookup('env', 'CML_HOSTNAME') }}"
+
+- name: CML_PASSWORD
+  set_fact:
+    cml_password: "{{ lookup('env', 'CML_PASSWORD') }}"
+  no_log: true
+
+- name: CML_USERNAME
+  set_fact:
+    cml_username: "{{ lookup('env', 'CML_USERNAME') }}"
+  no_log: true
+
+- name: CML_SSL_VERIFY
+  set_fact:
+    cml_ssl_verify: "{{ lookup('env', 'CML_SSL_VERIFY') | bool }}"
+
+- name: BASE_URL
+  set_fact:
+    base_url: "https://{{ cml_hostname }}/api/v0"
+
+- name: FAIL ON MISSING ENVS
+  fail:
+    msg: "You must define environment variables:  CML_HOSTNAME, CML_USERNAME, CML_PASSWORD, CML_SSL_VERIFY"
+  when: (cml_hostname == ""
+        or cml_username == ""
+        or cml_password == ""
+        or cml_ssl_verify == "")

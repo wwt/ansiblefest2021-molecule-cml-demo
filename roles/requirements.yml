@@ -1,0 +1,5 @@
+---
+- name: ansible_ios_common_settings
+  src: http://gitlocal.wwtatc.lab/wwt/ansible_ios_common_settings.git
+  scm: git
+  version: master

@@ -1,0 +1,52 @@
+---
+# This is an example playbook to execute Ansible tests.
+
+- name: Verify
+  hosts: all
+  gather_facts: false
+
+  tasks:
+    - name: GET NTP SERVERS CONFIG
+      cisco.ios.ios_command:
+        commands:
+          - show ntp config
+      register: ntp_config_output
+
+    - name: VALIDATE NTP SERVERS EXIST
+      assert:
+        that:
+          - ntp_config_output.stdout is search(item)
+      with_items: "{{ ntp.servers }}"
+
+    - name: GET NTP LOGGING INFORMATION
+      cisco.ios.ios_command:
+        commands:
+          - show running-config | include ntp logging
+      register: ntp_logging_output
+
+    - name: VALIDATE NTP LOGGING
+      assert:
+        that:
+          - ntp_logging_output.stdout is search('ntp logging')
+
+    - name: GET NTP SERVER SOURCE INTERFACE
+      cisco.ios.ios_command:
+        commands:
+          - show running-config | include ntp source
+      register: ntp_source_output
+
+    - name: VALIDATE NTP SOURCE INTERFACE
+      assert:
+        that:
+          - ntp_source_output.stdout|lower is search(ntp.source_interface|lower)
+
+    # - name: RETRIEVE CONFIG ROUTES
+    #   cisco.ios.ios_command:
+    #     commands:
+    #       - show run | inc ip route
+    #   register: routes_output
+
+    # - name: VERIFY ROUTES
+    #   assert:
+    #     that:
+    #       - routes_output.stdout[0] is search("8.8.8.8")

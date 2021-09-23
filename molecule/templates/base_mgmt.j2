@@ -1,0 +1,17 @@
+hostname {{ hostname }}
+username {{ username }} privilege 15 secret {{ password }}
+ip domain name {{ domain_name }}
+ip vrf mgmt
+int {{ mgmt_intf }}
+no switchport
+ip vrf forwarding mgmt
+ip address {{ mgmt_ip }} {{ mgmt_mask }}
+no shut
+exit
+ip route vrf mgmt 0.0.0.0 0.0.0.0 {{ default_gateway }}
+crypto key generate rsa general modulus 2048
+
+line vty 0 4
+  login local
+line console 0
+  login local

@@ -1,0 +1,90 @@
+---
+- name: Destroy
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  no_log: "{{ molecule_no_log }}"
+
+  vars_files:
+    - ../vars/test_environment.yml
+
+  vars:
+    provider:
+      host: "{{ lookup('env', 'INFOBLOX_HOST') }}"
+      username: "{{ lookup('env', 'INFOBLOX_USERNAME') }}"
+      password: "{{ lookup('env', 'INFOBLOX_PASSWORD') }}"
+      validate_certs: "{{ lookup('env', 'INFOBLOX_SSL_VERIFY') }}"
+
+  tasks:
+    - name: STAT THE FILE
+      stat:
+        path: '{{ lab_path }}'
+      register: file_results
+
+    - name: DESTROY BLOCK
+      block:
+        - name: READ LAB DETAILS
+          set_fact:
+            lab: "{{ lookup('file', '{{ lab_path }}') | from_yaml }}"
+
+        - name: INCLUDE AUTHENTICATE
+          include_tasks: ../../tasks/cml_authenticate.yml
+
+        - name: STOP LAB
+          uri:
+            url: '{{ base_url }}/labs/{{ lab.id }}/stop'
+            method: PUT
+            validate_certs: "{{ cml_ssl_verify }}"
+            # body_format: json
+            headers:
+              Content-Type: application/json
+              Accept: application/json
+              authorization: Bearer {{ token }}
+
+        - name: WIPE CONFIGS
+          uri:
+            url: '{{ base_url }}/labs/{{ lab.id }}/wipe?force=true'
+            method: PUT
+            validate_certs: "{{ cml_ssl_verify }}"
+            headers:
+              Content-Type: application/json
+              Accept: application/json
+              authorization: Bearer {{ token }}
+
+        - name: DELETE LAB
+          uri:
+            url: '{{ base_url }}/labs/{{ lab.id }}'
+            method: DELETE
+            validate_certs: "{{ cml_ssl_verify }}"
+            body_format: json
+            headers:
+              Content-Type: application/json
+              Accept: application/json
+              authorization: Bearer {{ token }}
+
+        - name: DELETE LAB FILE
+          file:
+            path: "{{ lab_path }}"
+            state: absent
+
+        - name: INCLUDE DESTROY_INSTANCE
+          include_tasks: destroy_instance.yml
+          loop: "{{ molecule_yml.platforms }}"
+
+        # Developer must implement.
+
+        # Mandatory configuration for Molecule to function.
+
+        - name: Populate instance config
+          set_fact:
+            instance_conf: {}
+
+        - name: Dump instance config
+          copy:
+            content: |
+              # Molecule managed
+
+              {{ instance_conf | to_json | from_json | to_yaml }}
+            dest: "{{ molecule_instance_config }}"
+          when: server.changed | default(false) | bool
+      when: file_results.stat.exists
