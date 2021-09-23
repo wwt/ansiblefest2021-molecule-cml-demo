@@ -27,11 +27,12 @@ jobs:
         uses: actions/checkout@v2
 
       - name: build docker image
+        # Update <<docker-repository>> with URL to private docker repository
         run: |
           docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
           docker image build -t $GITHUB_REPOSITORY .
-          docker tag $GITHUB_REPOSITORY lab-docker.wwtatc.com/$GITHUB_REPOSITORY:latest
-          docker push lab-docker.wwtatc.com/$GITHUB_REPOSITORY:latest
+          docker tag $GITHUB_REPOSITORY <<docker-repository>>/$GITHUB_REPOSITORY:latest
+          docker push <<docker-repository>>/$GITHUB_REPOSITORY:latest
 
   deploy-test:
     runs-on: [self-hosted, linux]
@@ -39,7 +40,8 @@ jobs:
     env:
       ANSIBLE_CALLBACK_WHITELIST: profile_tasks
     container:
-      image: lab-docker.wwtatc.com/wwt/cml_ansible_molecule:latest
+      # Update <<docker-repository>> with URL to private docker repository
+      image: <<docker-repository>>/$GITHUB_REPOSITORY:latest
       env:
         CML_HOSTNAME: ${{ secrets.CML_HOSTNAME }}
         CML_USERNAME: ${{ secrets.CML_USERNAME }}
